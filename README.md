@@ -1,5 +1,4 @@
 # SAN FRANCISCO'S SUSHI RESTAURANT VISUALIZATION
+__Web data connector created for ingesting data for yahoo api__
 
-## Web data connector created for ingesting data for yahoo api
-
-### Authors: Esteban Ciro, Andres Eyherabide, Leandro Mora
+**Authors:** Esteban Ciro, Andres Eyherabide, Leandro Mora
