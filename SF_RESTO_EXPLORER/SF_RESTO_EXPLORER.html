@@ -1,0 +1,68 @@
+<html>
+<meta http-equiv="Cache-Control" content="no-store" />
+<head>
+  <title>Stock Quote Connector-Tutorial</title>
+  <script src="https://online.tableau.com/javascripts/api/tableauwdc-1.1.0.js" type="text/javascript"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+  (function() {
+
+    var myConnector = tableau.makeConnector();
+
+    myConnector.getColumnHeaders = function() {
+        var fieldNames = ['Name', 'City', 'State', 'Latitude', 'Longitude', 'Rating', 'TotalReviews', 'BusinessUrl', 'Address'];
+        var fieldTypes = ['string', 'string', 'string', 'string', 'string', 'float', 'int', 'string', 'string'];
+        tableau.headersCallback(fieldNames, fieldTypes);
+    }
+
+    myConnector.getTableData = function(lastRecordToken) {
+        var dataToReturn = [];
+        var hasMoreData = false;
+
+        var xhr = $.ajax({
+          url: 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20local.search(600)%20where%20query%3D%22sushi%22%20and%20location%3D%22san%20francisco%2C%20ca%22&format=json',
+          dataType: 'json',
+          success: function (data) {
+              if (data.query.results) {
+                var quotes = data.query.results.Result;
+                var ii;
+                for (ii = 0; ii < quotes.length; ++ii) {
+                    var entry = {'Title': quotes[ii].Title,
+                                 'City': quotes[ii].City,
+                                 'State': quotes[ii].State,
+                                 'Latitude': quotes[ii].Latitude,
+                                 'Longitude': quotes[ii].Longitude,
+                                 'Rating': quotes[ii].Rating.AverageRating,
+                                 'TotalReviews': quotes[ii].Rating.TotalReviews,
+                                 'BusinessUrl': quotes[ii].BusinessUrl,
+                                 'Address':quotes[ii].Rating.Address};
+                    dataToReturn.push(entry);
+                }
+                tableau.dataCallback(dataToReturn, lastRecordToken, false);
+              } else {
+                  tableau.abortWithError("No results found for ticker symbol: " + ticker);
+              }
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+              tableau.log("Connection error: " + xhr.responseText + "\n" + thrownError);
+              tableau.abortWithError("Error while trying to connect to the Yahoo data source.");
+          }
+        });
+      }
+      tableau.registerConnector(myConnector);
+  })();
+
+  $(document).ready(function() {
+    $("#submitButton").click(function() {
+      tableau.connectionName = "Census Connection";
+      tableau.submit();
+    });
+  });
+</script>
+</head>
+<body>
+  <!--<p>Enter a stock ticker symbol: <input type="text" id="ticker" /></p>-->
+  <p><button type="button" id="submitButton">Get the Data</button></p>
+</body>
+</html>
